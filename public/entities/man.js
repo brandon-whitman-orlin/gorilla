@@ -10,14 +10,24 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
-        this.setScale(0.09);
+        // Calculate scale factor based on screen dimensions
+        this.scaleFactor = Math.min(
+            scene.sys.game.config.width / 800,
+            scene.sys.game.config.height / 600
+        );
+
+        // Apply scaling to the sprite
+        this.setScale(0.09 * this.scaleFactor);
         this.setOrigin(0.5, 1);
         this.body.setCollideWorldBounds(true);
         this.body.setVelocityY(0);
         this.body.setAllowGravity(true);
-        this.body.setSize(this.width * 0.25, this.height * 0.9);
+        this.body.setSize(this.width * 0.1, this.height * 1);
         this.body.setMass(1); // Man
-        this.body.setMaxVelocity(50, 50);
+        
+        // Scale velocities based on screen size
+        const maxVelocity = 50 * this.scaleFactor;
+        this.body.setMaxVelocity(maxVelocity, maxVelocity);
 
         const scaledWidth = this.width * this.scaleX;
         this.halfWidth = scaledWidth / 2;
@@ -30,7 +40,8 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
         this.healthBarBackground = scene.add.graphics();
         this.healthBarForeground = scene.add.graphics();
 
-        this.pacingSpeed = 20;
+        // Scale pacing speed with screen size
+        this.pacingSpeed = 20 * this.scaleFactor;
         this.pacingDirection = 0; // 0 means not moving
         this.nextPacingDecisionTime = 0;
         this.currentBehavior = 'pacing'; // Default behavior is pacing
@@ -39,9 +50,11 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
         this.lastGorillaAliveZeroTime = null;
         this.lastAttackTime = 0;
         this.transitioning = false;  // Flag to prevent recursive behavior transitions
+        this.isDead = false;
     }
 
     update(time) {
+        if (this.isDead) return;
         this.updateHealthBar();
 
         if (this.transitioning) {
@@ -82,13 +95,22 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
             }
         }
 
+        if (this.gameProperties.showHealthBars) {
+            this.healthBarForeground.visible = true;
+            this.healthBarBackground.visible = true;
+        } else {
+            this.healthBarForeground.visible = false;
+            this.healthBarBackground.visible = false;
+        }
+
     }
 
     updateHealthBar() {
-        const barWidth = 40;
-        const barHeight = 6;
+        // Scale health bar size based on screen dimensions
+        const barWidth = 40 * this.scaleFactor;
+        const barHeight = 6 * this.scaleFactor;
         const x = this.x - barWidth / 2;
-        const y = this.y - this.displayHeight - 10;
+        const y = this.y - this.displayHeight - (10 * this.scaleFactor);
     
         const healthRatio = Phaser.Math.Clamp(this.health / this.maxHealth, 0, 1);
     
@@ -222,11 +244,12 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
         }
     
         this.setFlipX(this.pacingDirection > 0);
-        this.x = Phaser.Math.Clamp(this.x, 0, this.gameProperties.gameWidth);
-        this.y = Phaser.Math.Clamp(this.y, 0, this.gameProperties.gameHeight - 15);
+        this.x = Phaser.Math.Clamp(this.x, 30 * this.scaleFactor, this.gameProperties.gameWidth - (30 * this.scaleFactor));
+        this.y = Phaser.Math.Clamp(this.y, 0, this.gameProperties.gameHeight - (15 * this.scaleFactor));
     }
 
     handleAttacking(time) {
+        if (this.isDead) return;
         const gorillas = this.scene.gorillas.children.entries;
     
         if (gorillas.length === 0) {
@@ -247,10 +270,13 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
         }
     
         if (closestGorilla) {
+            // Scale attack distance thresholds based on screen size
+            const horizontalThreshold = 50 * this.scaleFactor;
+            const verticalThreshold = 80 * this.scaleFactor;
             const horizontalDistance = Math.abs(this.x - closestGorilla.x);
             const verticalDistance = Math.abs(this.y - closestGorilla.y);
         
-            if (horizontalDistance <= 40 && verticalDistance <= 80) {
+            if (horizontalDistance <= horizontalThreshold && verticalDistance <= verticalThreshold) {
                 this.body.setVelocityX(0); // Stop moving when close enough
         
                 const manBounds = this.getBounds();
@@ -258,7 +284,25 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
         
                 if (Phaser.Geom.Rectangle.Overlaps(manBounds, gorillaBounds)) {
                     if (time - this.lastAttackTime >= 1000) {
-                        closestGorilla.takeDamage(1);
+                        closestGorilla.takeDamage(5);
+
+                        // Apply scaled knockback to the man
+                        const knockbackDistance = Phaser.Math.Between(0, 40 * this.scaleFactor);
+                        const knockbackDirection = this.x > closestGorilla.x ? -1 : 1;
+                        const rawX = closestGorilla.x + (knockbackDistance * knockbackDirection);
+                        const clampedX = Phaser.Math.Clamp(
+                          rawX,
+                          this.scene.physics.world.bounds.left + (5 * this.scaleFactor),
+                          this.scene.physics.world.bounds.right - (5 * this.scaleFactor)
+                        );
+                        
+                        this.scene.tweens.add({
+                          targets: closestGorilla,
+                          x: clampedX,
+                          y: closestGorilla.y - Phaser.Math.Between(0, 20 * this.scaleFactor),
+                          ease: 'Power2',
+                          duration: 200,
+                        });
         
                         this.scene.humanHitEmitter.emitParticleAt(
                             closestGorilla.x,
@@ -274,7 +318,7 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
                 }
             } else {
                 const direction = Math.sign(closestGorilla.x - this.x); // -1 or 1
-                this.body.setVelocityX(direction * 100); // Rush toward the gorilla
+                this.body.setVelocityX(direction * 100 * this.scaleFactor); // Rush toward the gorilla with scaled speed
                 this.setFlipX(direction > 0); // Face the target
             }
         }
@@ -286,14 +330,14 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
             this.body.setVelocityX(0); // Stop moving after attack duration
             this.newBehavior();
         }
-        this.x = Phaser.Math.Clamp(this.x, 0, this.gameProperties.gameWidth);
-        this.y = Phaser.Math.Clamp(this.y, 0, this.gameProperties.gameHeight - 15);
+        this.x = Phaser.Math.Clamp(this.x, 30 * this.scaleFactor, this.gameProperties.gameWidth - (30 * this.scaleFactor));
+        this.y = Phaser.Math.Clamp(this.y, 0, this.gameProperties.gameHeight - (15 * this.scaleFactor));
     }
 
     handleCelebrating(time) {
         if (!this.nextJumpTime || time > this.nextJumpTime) {
             if (this.body.blocked.down) { // Only jump if on the ground
-                this.setVelocityY(-300); // Adjust this value as needed
+                this.setVelocityY(-300 * this.scaleFactor); // Scale jump height
                 //console.log('Man jumps in celebration!');
             }
             this.nextJumpTime = time + 600; // Jump every 600ms
@@ -304,8 +348,8 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
             this.nextJumpTime = null;
             this.newBehavior();
         }
-        this.x = Phaser.Math.Clamp(this.x, 0, this.gameProperties.gameWidth);
-        this.y = Phaser.Math.Clamp(this.y, 0, this.gameProperties.gameHeight - 15);
+        this.x = Phaser.Math.Clamp(this.x, 30 * this.scaleFactor, this.gameProperties.gameWidth - (30 * this.scaleFactor));
+        this.y = Phaser.Math.Clamp(this.y, 0, this.gameProperties.gameHeight - (15 * this.scaleFactor));
     }
 
     handlePaused(time) {
@@ -314,11 +358,51 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
 
     takeDamage(amount) {
         this.health -= amount;
-        if (this.health <= 0) {
+
+        if (this.isDead) return; // already dead, do nothing
+
+        if (this.health <= 0 && !this.isDead) {
+            this.isDead = true;
             this.healthBarBackground.destroy();
             this.healthBarForeground.destroy();
-            this.gameProperties.gameMenAlive--;  // ✅ Correct access
-            this.destroy();
+            this.gameProperties.gameMenAlive--;
+    
+            const sounds = this.scene.humanDieSounds;
+            const randomSound = Phaser.Utils.Array.GetRandom(sounds);
+            randomSound.play();
+    
+            this.body.setVelocity(0, 0);
+            this.body.setAllowGravity(false);
+            this.body.enable = false;
+    
+            this.setDepth(10);
+            this.setOrigin(0.5, 1);
+    
+            // Capture scene reference safely
+            const scene = this.scene;
+    
+            const fallAngleDeg = Phaser.Math.RND.pick([
+                Phaser.Math.Between(-110, -75),
+                Phaser.Math.Between(75, 110)
+            ]);
+            const fallAngleRad = Phaser.Math.DegToRad(fallAngleDeg);
+            const fallDistance = 80 * this.scaleFactor;
+    
+            scene.tweens.add({
+                targets: this,
+                rotation: fallAngleRad,
+                y: this.y + fallDistance,
+                duration: 600,
+                ease: 'Back.easeOut',
+                onComplete: () => {
+                    // Check if the sprite still exists before using scene/time
+                    if (this && this.active && scene && scene.time) {
+                        scene.time.delayedCall(800, () => {
+                            this.destroy();
+                        });
+                    }
+                }
+            });
         }
     }
 

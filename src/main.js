@@ -5,14 +5,17 @@ import { Gorilla } from '../public/entities/gorilla'; // Adjust path as needed
 import { Man } from '../public/entities/man'; // Adjust path as needed
 
 const gameProperties = {
-  gameWidth: 500,
-  gameHeight: 500,
+  gameWidth: window.innerWidth-160,
+  gameHeight: window.innerHeight-160,
   gameGravity: 1000,
   gameSpeed: 1,
   gameMenAlive: 0,
   gameGorillasAlive: 0,
   hasSpawnedMen: false,
   hasSpawnedGorillas: false,
+  showHealthBars: false,
+  gameSFXVolume: 100,
+  gameMusicVolume: 100,
 }
 
 const rootStyles = getComputedStyle(document.documentElement);
@@ -30,6 +33,15 @@ class GameScene extends Phaser.Scene {
     for (let i = 1; i <= 18; i++) {
       this.load.svg(`man${i}`, `assets/men/man${i}.svg`);
     }
+
+    this.load.audio('music', 'assets/sounds/music.mp3');
+
+    this.load.audio('humanSpawnSound1', 'assets/sounds/human_spawn_1.mp3');
+    this.load.audio('humanSpawnSound2', 'assets/sounds/human_spawn_2.mp3');
+    this.load.audio('gorillaSpawnSound1', 'assets/sounds/gorilla_spawn_1.mp3');
+    this.load.audio('gorillaSpawnSound2', 'assets/sounds/gorilla_spawn_2.mp3');
+
+
     this.load.audio('gorillaPunchSound1', 'assets/sounds/gorilla_punch_1.mp3');
     this.load.audio('gorillaPunchSound2', 'assets/sounds/gorilla_punch_2.mp3');
     this.load.audio('gorillaPunchSound3', 'assets/sounds/gorilla_punch_3.mp3');
@@ -44,6 +56,11 @@ class GameScene extends Phaser.Scene {
     this.load.audio('humanCheerSound2', 'assets/sounds/human_cheer_2.mp3');
     this.load.audio('humanCheerSound3', 'assets/sounds/human_cheer_3.mp3');
 
+    this.load.audio('humanDieSound1', 'assets/sounds/human_die_1.mp3');
+    this.load.audio('humanDieSound2', 'assets/sounds/human_die_2.mp3');
+    this.load.audio('gorillaDieSound1', 'assets/sounds/gorilla_die_1.mp3');
+    this.load.audio('gorillaDieSound2', 'assets/sounds/gorilla_die_2.mp3');
+
     this.load.image('gorillaHitParticle', 'assets/gorilla-fist.png');
     this.load.image('humanHitParticle', 'assets/human-fist.png');
   }
@@ -53,54 +70,83 @@ class GameScene extends Phaser.Scene {
     window.gameScene = this;
 
     this.gorillaPunchSounds = [
-      this.sound.add('gorillaPunchSound1').setVolume(0.5),
-      this.sound.add('gorillaPunchSound2').setVolume(0.5),
-      this.sound.add('gorillaPunchSound3').setVolume(0.5),
+      this.sound.add('gorillaPunchSound1').setVolume(0.005 * gameProperties.gameSFXVolume),
+      this.sound.add('gorillaPunchSound2').setVolume(0.005 * gameProperties.gameSFXVolume),
+      this.sound.add('gorillaPunchSound3').setVolume(0.005 * gameProperties.gameSFXVolume),
     ];
   
     this.humanPunchSounds = [
-      this.sound.add('humanPunchSound1').setVolume(0.5),
-      this.sound.add('humanPunchSound2').setVolume(0.5),
-      this.sound.add('humanPunchSound3').setVolume(0.5),
+      this.sound.add('humanPunchSound1').setVolume(0.005 * gameProperties.gameSFXVolume),
+      this.sound.add('humanPunchSound2').setVolume(0.005 * gameProperties.gameSFXVolume),
+      this.sound.add('humanPunchSound3').setVolume(0.005 * gameProperties.gameSFXVolume),
     ];
 
     this.gorillaCheerSounds = [
-      this.sound.add('gorillaCheerSound1').setVolume(0.5),
-      this.sound.add('gorillaCheerSound2').setVolume(0.5),
-      this.sound.add('gorillaCheerSound3').setVolume(0.5),
+      this.sound.add('gorillaCheerSound1').setVolume(0.005 * gameProperties.gameSFXVolume),
+      this.sound.add('gorillaCheerSound2').setVolume(0.005 * gameProperties.gameSFXVolume),
+      this.sound.add('gorillaCheerSound3').setVolume(0.005 * gameProperties.gameSFXVolume),
     ];
   
     this.humanCheerSounds = [
-      this.sound.add('humanCheerSound1').setVolume(0.5),
-      this.sound.add('humanCheerSound2').setVolume(0.5),
-      this.sound.add('humanCheerSound3').setVolume(0.5),
+      this.sound.add('humanCheerSound1').setVolume(0.005 * gameProperties.gameSFXVolume),
+      this.sound.add('humanCheerSound2').setVolume(0.005 * gameProperties.gameSFXVolume),
+      this.sound.add('humanCheerSound3').setVolume(0.005 * gameProperties.gameSFXVolume),
     ];
 
-    this.gorillaHitEmitter = this.add.particles(
-      0, 0,
-      'gorillaHitParticle',
-      {
-        speed: { min: -100, max: 100 },
-        scale: { start: 0, end: 0.05 },
-        lifespan: 300,
-        quantity: 1,
-        gravityY: 0,
-        frequency: -1   // <- disable all automatic emission
-      }
-    );
+    this.humanSpawnSounds = [
+      this.sound.add('humanSpawnSound1').setVolume(0.005 * gameProperties.gameSFXVolume),
+      this.sound.add('humanSpawnSound2').setVolume(0.005 * gameProperties.gameSFXVolume),
+    ];
 
-    this.humanHitEmitter = this.add.particles(
-      0, 0,
-      'humanHitParticle',
-      {
-        speed: { min: -100, max: 100 },
-        scale: { start: 0, end: 0.05 },
+    this.gorillaSpawnSounds = [
+      this.sound.add('gorillaSpawnSound1').setVolume(0.005 * gameProperties.gameSFXVolume),
+      this.sound.add('gorillaSpawnSound2').setVolume(0.005 * gameProperties.gameSFXVolume),
+    ];
+
+    this.humanDieSounds = [
+      this.sound.add('humanDieSound1').setVolume(0.005 * gameProperties.gameSFXVolume),
+      this.sound.add('humanDieSound2').setVolume(0.005 * gameProperties.gameSFXVolume),
+    ];
+
+    this.gorillaDieSounds = [
+      this.sound.add('gorillaDieSound1').setVolume(0.005 * gameProperties.gameSFXVolume),
+      this.sound.add('gorillaDieSound2').setVolume(0.005 * gameProperties.gameSFXVolume),
+    ];
+
+    this.music = this.sound.add('music').setVolume(0.005 * gameProperties.gameMusicVolume);
+    this.music.play();
+
+  // Updated particle emitter code with scaling
+  this.scaleFactor = Math.min(
+    this.sys.game.config.width / 800,
+    this.sys.game.config.height / 600
+  );
+
+  this.gorillaHitEmitter = this.add.particles(
+    0, 0,
+    'gorillaHitParticle',
+    {
+        speed: { min: -100 * this.scaleFactor, max: 100 * this.scaleFactor },
+        scale: { start: 0, end: 0.05 * this.scaleFactor },
         lifespan: 300,
         quantity: 1,
         gravityY: 0,
         frequency: -1   // <- disable all automatic emission
-      }
-    );
+    }
+  );
+
+  this.humanHitEmitter = this.add.particles(
+    0, 0,
+    'humanHitParticle',
+    {
+        speed: { min: -100 * this.scaleFactor, max: 100 * this.scaleFactor },
+        scale: { start: 0, end: 0.05 * this.scaleFactor },
+        lifespan: 300,
+        quantity: 1,
+        gravityY: 0,
+        frequency: -1   // <- disable all automatic emission
+    }
+  );
 
     this.gorillaHitEmitter.setDepth(10);
     this.humanHitEmitter.setDepth(10);
@@ -146,7 +192,7 @@ class GameScene extends Phaser.Scene {
     this.men = this.physics.add.group({
       bounceY: 0.3 //
     });
-  
+
     // Set collider between gorillas/men and the ground with a callback
     this.physics.add.collider(this.gorillas, this.ground, null, null, this);
     this.physics.add.collider(this.men, this.ground, null, null, this);
@@ -183,22 +229,21 @@ class GameScene extends Phaser.Scene {
     // });
 
     // Enable debug for seeing physics bodies
-    this.physics.world.createDebugGraphic();
-    this.physics.world.setBounds(0, 0, 500, 500);
+    // this.physics.world.createDebugGraphic();
 
-    const graphics = this.add.graphics();
-    graphics.lineStyle(2, 0xff0000, 1); // red lines
+    // const graphics = this.add.graphics();
+    // graphics.lineStyle(2, 0xff0000, 1); // red lines
 
-    // Line at x = 0
-    graphics.beginPath();
-    graphics.moveTo(10, 0);
-    graphics.lineTo(10, this.scale.height);
-    graphics.strokePath();
+    // // Line at x = 0
+    // graphics.beginPath();
+    // graphics.moveTo(10, 0);
+    // graphics.lineTo(10, this.scale.height);
+    // graphics.strokePath();
 
-    graphics.beginPath();
-    graphics.moveTo(490, 0);
-    graphics.lineTo(490, this.scale.height);
-    graphics.strokePath();
+    // graphics.beginPath();
+    // graphics.moveTo(gameProperties.gameWidth-10, 0);
+    // graphics.lineTo(gameProperties.gameWidth-10, this.scale.height);
+    // graphics.strokePath();
   }
   
   // In GameScene's update method:
@@ -257,21 +302,25 @@ document.getElementById('btn-play').addEventListener('click', () => {
 
 // main.js
 document.getElementById('btn-spawn-man').addEventListener('click', () => {
-  for (let i = 0; i < 100; i++) {
+  // for (let i = 0; i < 100; i++) {
     const scene = window.gameScene;
     if (scene && scene.men) {
       const man = new Man(
         scene,
-        Phaser.Math.Between(50, 450),
+        Phaser.Math.Between(10, gameProperties.gameWidth-10),
         100,
         gameProperties        // <-- pass it here
       );
       scene.men.add(man);
       gameProperties.gameMenAlive++;
       gameProperties.hasSpawnedMen = true;
+
+      const sounds = scene.humanSpawnSounds;
+      const randomSound = Phaser.Utils.Array.GetRandom(sounds);
+      randomSound.play();
       console.log('Man spawned');
     }
-  } 
+  // } 
 });
 
 
@@ -280,13 +329,17 @@ document.getElementById('btn-spawn-gorilla').addEventListener('click', () => {
   if (scene && scene.gorillas) {
     const gorilla = new Gorilla(
       scene,
-      Phaser.Math.Between(50, 450), // x
+      Phaser.Math.Between(10, gameProperties.gameWidth-10), // x
       100,                          // y
       gameProperties // Pass the entire gameProperties object
     );
     scene.gorillas.add(gorilla);
     gameProperties.gameGorillasAlive++; //ADDED THIS LINE
     gameProperties.hasSpawnedGorillas = true;
+
+    const sounds = scene.gorillaSpawnSounds;
+    const randomSound = Phaser.Utils.Array.GetRandom(sounds);
+    randomSound.play();
     console.log('Gorilla spawned');
   } else {
     console.warn('GameScene not ready yet.');
@@ -322,3 +375,49 @@ document.getElementById('btn-clear').addEventListener('click', () => {
     console.warn('GameScene not ready yet.');
   }
 });
+
+document.getElementById('btn-show-health').addEventListener('click', function () {
+  if (this.textContent === 'Show Health') {
+    this.textContent = 'Hide Health';
+    gameProperties.showHealthBars = true;
+  } else {
+    this.textContent = 'Show Health';
+    gameProperties.showHealthBars = false;
+  }
+});
+
+// SFX Volume Slider
+document.getElementById('sfx-volume').addEventListener('input', (event) => {
+  const newVolume = parseInt(event.target.value, 10);
+  gameProperties.gameSFXVolume = newVolume;
+
+  // Update all SFX volumes
+  const scene = window.gameScene;
+  if (scene) {
+    const volumeScale = 0.005 * newVolume;
+    const updateVolume = (sounds) => {
+      sounds?.forEach(sound => sound.setVolume(volumeScale));
+    };
+    
+    updateVolume(scene.gorillaPunchSounds);
+    updateVolume(scene.humanPunchSounds);
+    updateVolume(scene.gorillaCheerSounds);
+    updateVolume(scene.humanCheerSounds);
+    updateVolume(scene.gorillaSpawnSounds);
+    updateVolume(scene.humanSpawnSounds);
+    updateVolume(scene.gorillaDieSounds);
+    updateVolume(scene.humanDieSounds);
+  }
+});
+
+// Music Volume Slider
+document.getElementById('music-volume').addEventListener('input', (event) => {
+  const newVolume = parseInt(event.target.value, 10);
+  gameProperties.gameMusicVolume = newVolume;
+
+  const scene = window.gameScene;
+  if (scene?.music) {
+    scene.music.setVolume(0.005 * newVolume);
+  }
+});
+
