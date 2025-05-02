@@ -1,0 +1,65 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  --grassColor: #067702;
+  --skyColor: #69dee2;
+  --textColor: #161313;
+  --backgroundColor: #f1f1f1;
+  --warningColor: #a50d0d;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--backgroundColor);
+  color: var(--textColor);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+header, footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1rem;
+}
+
+main {
+  flex: 1;
+  display: flex;
+}
+
+#gameCanvas {
+  border: 0.1rem solid var(--warningColor);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  z-index: 1;
+}
+
+#ui {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+}
+
+#ui button {
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
