@@ -21,7 +21,9 @@ export class StartScene extends Phaser.Scene {
 
         // Show game UI
         const uiDiv = document.getElementById('ui');
-        if (uiDiv) uiDiv.style.display = 'flex';
+        if (uiDiv) {
+            uiDiv.style.display = window.innerWidth <= 300 ? 'grid' : 'flex';
+          }
 
         // Start the game scene
         this.scene.start('scene-game');

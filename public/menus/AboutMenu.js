@@ -27,7 +27,9 @@ export class AboutScene extends Phaser.Scene {
             this.scene.stop();               // Stop the AboutScene
           
             // Show game UI again
-            if (uiDiv) uiDiv.style.display = 'flex';
+            if (uiDiv) {
+                uiDiv.style.display = window.innerWidth <= 300 ? 'grid' : 'flex';
+            }
           
             // Reset about button label (if you have one)
             const playButton = document.getElementById('btn-play');

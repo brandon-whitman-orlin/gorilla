@@ -53,7 +53,9 @@ export class PauseScene extends Phaser.Scene {
         pauseMenu.style.display = 'none';
 
         // Show game UI again
-        if (uiDiv) uiDiv.style.display = 'flex';
+        if (uiDiv) {
+            uiDiv.style.display = window.innerWidth <= 300 ? 'grid' : 'flex';
+          }
 
         // Resume game
         this.scene.stop(); // Stop PauseScene

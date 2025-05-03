@@ -24,6 +24,14 @@
   box-sizing: border-box;
 }
 
+p, h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
 html, body {
   height: 100%;
 }
@@ -42,6 +50,7 @@ header, footer {
   align-items: center;
   padding: 1rem;
   flex-shrink: 0;
+  text-align: center;
 }
 
 header p {
@@ -124,6 +133,9 @@ main {
   padding: 0.5rem;
   color: black;
   gap: 0.5rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 1rem;
 }
 
 #ui input {
@@ -246,25 +258,129 @@ main {
   max-width: 75%;
 }
 
-#aboutMenu #funFact p {
+#aboutMenu .submenu p {
   max-width: unset;
   transition: all 0.3s ease-in-out;
 }
 
-#aboutMenu #funFact p a {
+#aboutMenu .submenu p a {
   color: var(--skyColor);
   transition: all 0.3s ease-in-out;
   border-radius: var(--menuBorderRadius);
 }
 
-#aboutMenu #funFact p a:hover, #aboutMenu #funFact p a:focus-visible{
+#aboutMenu .submenu p a:hover, #aboutMenu .submenu p a:focus-visible{
   color: var(--warningColor);
   font-size: larger;
 }
 
-#aboutMenu #funFact p a:focus-visible{
+#aboutMenu .submenu p a:focus-visible{
   outline: 0.2rem solid var(--warningColor);
   padding-inline: 0.25rem;
   margin-inline: 0.25rem;
   text-decoration: none;
+}
+
+@media screen and (max-width: 750px) {
+  #ui {
+    padding: 0.5rem;
+    display: none;
+  }
+
+  #ui button, #ui label {
+    font-size: 0.75rem;
+    padding: 0.25rem;
+    font-weight: 900;
+  }
+
+  #ui input {
+    width: 90%;
+  }
+
+  .gameMenu {
+    padding: 1.5rem;
+  }
+
+  .gameMenu .submenu {
+    max-width: 100%;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  #ui {
+    padding: 0.25rem;
+    display: none;
+  }
+
+  #ui button, #ui label {
+    font-size: 0.65rem;
+    gap: 0.25rem;
+  }
+
+  header p span {
+    display: none;
+  }
+
+  .gameMenu #funFact h3 span:first-of-type {
+    width: 100%;
+    display: block;
+  }
+
+  .gameMenu #funFact h3 span:last-of-type {
+    display: none;
+  }
+
+  .gameMenu #funFact h4 {
+    font-size: 1.25rem;
+    max-width: 100%;
+  }
+
+  .gameMenu {
+    margin: 1rem;
+  }
+}
+
+@media screen and (max-width: 300px) {
+  #ui {
+    left: unset;
+    width: 90%;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.25rem;
+  }
+
+  #ui button, #ui label {
+    flex: 1 1 0px;
+  }
+
+  #ui label {
+    order: 1;
+    grid-column: span 2
+  }
+
+  .gameMenu #funFact {
+    padding: 1rem;
+  }
+
+  .gameMenu #funFact h4 {
+    font-size: 1rem;
+    max-width: 100%;
+  }
+
+  .gameMenu #funFact h3 {
+    font-size: 1rem;
+    max-width: 100%;
+  }
+
+  .gameMenu {
+    margin: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .gameMenu h1 {
+    font-size: 1.5rem;
+  }
+
+  .gameMenu .menuButton {
+    font-size: 1.25rem;
+  }
 }
