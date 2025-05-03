@@ -3,6 +3,9 @@ import Phaser from 'phaser';
 
 import { Gorilla } from '../public/entities/gorilla'; // Adjust path as needed
 import { Man } from '../public/entities/man'; // Adjust path as needed
+import { StartScene } from '../public/menus/StartMenu.js';
+import { PauseScene } from '../public/menus/PauseMenu.js';
+import { AboutScene } from '../public/menus/AboutMenu.js';
 
 const gameProperties = {
   gameWidth: window.innerWidth-160,
@@ -16,8 +19,10 @@ const gameProperties = {
   showHealthBars: false,
   gameSFXVolume: 100,
   gameMusicVolume: 100,
+  gameIsPaused: false,
 }
 
+window.gameProperties = gameProperties; // ✅ Add this line
 const rootStyles = getComputedStyle(document.documentElement);
 
 class GameScene extends Phaser.Scene {
@@ -113,8 +118,22 @@ class GameScene extends Phaser.Scene {
       this.sound.add('gorillaDieSound2').setVolume(0.005 * gameProperties.gameSFXVolume),
     ];
 
-    this.music = this.sound.add('music').setVolume(0.005 * gameProperties.gameMusicVolume);
-    this.music.play();
+    this.music = this.sound.add('music', {
+      // volume: 0.005 * gameProperties.gameMusicVolume
+      volume: 0 * gameProperties.gameMusicVolume
+  });
+  
+  // Set up a listener for when the music finishes playing
+  this.music.on('complete', () => {
+      // Wait 5 seconds (5000 milliseconds), then play the music again
+      this.time.delayedCall(5000, () => {
+          this.music.play();
+      });
+  });
+  
+  // Start playing the music initially
+  this.music.play();
+  
 
   // Updated particle emitter code with scaling
   this.scaleFactor = Math.min(
@@ -290,15 +309,10 @@ const config = {
       debug: false,
     }
   },
-  scene:[GameScene]
+  scene: [StartScene, GameScene, PauseScene, AboutScene]
 }
 
 const game = new Phaser.Game(config);
-
-document.getElementById('btn-play').addEventListener('click', () => {
-  console.log('Play button clicked');
-  // Later: start or resume the game
-});
 
 // main.js
 document.getElementById('btn-spawn-man').addEventListener('click', () => {
@@ -385,6 +399,30 @@ document.getElementById('btn-show-health').addEventListener('click', function ()
     gameProperties.showHealthBars = false;
   }
 });
+
+document.getElementById('btn-play').addEventListener('click', function () {
+  const scene = window.gameScene;
+  if (this.textContent === 'Play') {
+    this.textContent = 'Pause';
+    gameProperties.gameIsPaused = false;
+    scene.scene.resume();
+  } else {
+    this.textContent = 'Play';
+    gameProperties.gameIsPaused = true;
+    scene.scene.launch('scene-pause');
+    scene.scene.pause(gameProperties);
+  }
+});
+
+document.getElementById('btn-about').addEventListener('click', function () {
+  const scene = window.gameScene;
+  if (scene) {
+    gameProperties.gameIsPaused = true;
+    scene.scene.launch('scene-about');
+    scene.scene.pause('scene-game');
+  }
+});
+
 
 // SFX Volume Slider
 document.getElementById('sfx-volume').addEventListener('input', (event) => {

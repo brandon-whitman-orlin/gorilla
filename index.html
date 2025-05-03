@@ -8,25 +8,59 @@
   </head>
   <body>
     <header>
-      <p>Phaser Demo | Gorilla Showdown</p>
+      <p>🦍 Gorilla Showdown 🦍</p>
     </header>
     <main>
       <canvas id="gameCanvas"></canvas>
       <div id="ui">
-        <button id="btn-play">Play</button>
+        <button id="btn-play">Pause</button>
         <button id="btn-spawn-man">Spawn Man</button>
         <button id="btn-spawn-gorilla">Spawn Gorilla</button>
         <button id="btn-clear">Clear Arena</button>
         <button id="btn-show-health">Show Health</button>
-        <label for="sfx-volume">SFX Volume</label>
-        <input type="range" id="sfx-volume" min="0" max="100" value="100">
 
-        <label for="music-volume">Music Volume</label>
-        <input type="range" id="music-volume" min="0" max="100" value="100">
+        <label for="music-volume">Music Volume
+          <input type="range" id="music-volume" min="0" max="100" value="100">
+        </label>
+
+        <label for="sfx-volume">SFX Volume
+          <input type="range" id="sfx-volume" min="0" max="100" value="100">
+        </label>
+
+        <button id="btn-about">About</button>
+      </div>
+      <div id="startMenu" class="gameMenu">
+        <h1>Gorilla Showdown</h1>
+        <h2>1 Gorilla, 100 Men, Only One Will Walk Out of the Jungle</h2>
+        <div class="submenu">
+          <p>Made with Phaser.js</p>
+          <p>In 48 hours</p>
+          <p>Enjoy 😀</p>
+        </div>
+        <button id="btn-start" class="menuButton">Start</button>
+      </div>
+      <div id="pauseMenu" class="gameMenu">
+        <h1>Simulation Paused</h1>
+        <div id="funFact" class="submenu">
+          <h3>🦍 Gorilla Fun Fact 🦍</h3>
+          <h4>In 48 hours</h4>
+          <p>Enjoy</p>
+        </div>
+        <button id="btn-resume" class="menuButton">Resume</button>
+      </div>
+      <div id="aboutMenu" class="gameMenu">
+        <h1>About Gorilla Showdown</h1>
+        <div id="funFact" class="submenu">
+          <p>Made by <a href="https://www.linkedin.com/in/brandon-whitman-orlin/" rel="noopener noreferrer" target="_blank">Brandon</a> (2025)</p>
+          <p>My <a href="https://woahcodes.com/" rel="noopener noreferrer" target="_blank">Website</a></p>
+          <p>Based on this <a href="https://knowyourmeme.com/memes/100-men-vs-1-gorilla/" rel="noopener noreferrer" target="_blank">Meme</a></p>
+          <p>Built using <a href="https://phaser.io/" rel="noopener noreferrer" target="_blank">Phaser.js</a></p>
+        </div>
+        <button id="btn-resume-2" class="menuButton">Resume</button>
       </div>
     </main>
     <footer>
-      <p>Created by Brandon Whitman-Orlin</p>
+      <p>Created by Brandon in under 48 hours 😴</p>
     </footer>
     <script type="module" src="/src/main.js"></script>
   </body>

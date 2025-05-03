@@ -1,11 +1,21 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: system-ui, sans-serif;
+  font-weight: normal;
 
   --grassColor: #067702;
   --skyColor: #69dee2;
   --textColor: #161313;
-  --backgroundColor: #f1f1f1;
-  --warningColor: #a50d0d;
+  --backgroundColor: #f1f1f1; 
+  --warningColor: #ff0000;
+
+  --menuBackground: hsla(240, 6%, 15%, 0.75);
+  --menuText: hsla(0, 0%, 100%, 1);
+  --menuBorderRadius: 0.5rem;
+
+  --menuInputBackground: rgb(182, 182, 182);
+
+  --startColor: #30882d;
+  --resumeColor: #0011ff;
 }
 
 * {
@@ -31,7 +41,17 @@ header, footer {
   justify-content: center;
   align-items: center;
   padding: 1rem;
-  flex-shrink: 0; /* Prevent shrinking */
+  flex-shrink: 0;
+}
+
+header p {
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+footer p {
+  text-transform: uppercase;
+  font-weight: 700;
 }
 
 main {
@@ -41,6 +61,7 @@ main {
   align-items: center;
   width: 100%;
   overflow: hidden;
+  position: relative;
 }
 
 #gameCanvas {
@@ -52,16 +73,198 @@ main {
 
 #ui {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  display: flex;
+  background-color: var(--menuBackground);
+  border-radius: var(--menuBorderRadius);
+  overflow: hidden;
   flex-direction: column;
-  gap: 10px;
-  z-index: 10;
+  justify-content: space-between;
+  align-items: stretch;
+  color: var(--menuText);
+  padding: 1rem;
+  text-align: center;
+  left: 1rem;
+  top: 1rem;
+  gap: 0.75rem;
+
+  display: none;
 }
 
 #ui button {
-  padding: 8px 12px;
-  font-size: 14px;
+  background-color: var(--menuText);
+  border-radius: var(--menuBorderRadius);
+  padding: 0.5rem;
+  color: black;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
+  border: transparent;
+  font-family: inherit;
+  transition: all 0.3s ease-in-out;
+}
+
+#ui button:hover, #ui button:focus-visible {
+  background-color: var(--textColor);
+  color: var(--backgroundColor);
+  transform: scale(1.1);
+}
+
+#ui button:focus-visible {
+  outline: 0.25rem solid var(--warningColor);
+  outline-offset: 1px;
+}
+
+#ui label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--menuText);
+  border-radius: var(--menuBorderRadius);
+  padding: 0.5rem;
+  color: black;
+  gap: 0.5rem;
+}
+
+#ui input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 0.5rem;
+  background-color: var(--menuInputBackground);
+  border-radius: var(--menuBorderRadius);
+}
+
+#ui input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 0.75rem;
+  height: 0.75rem;
+  background: var(--textColor);
+  cursor: pointer;
+  border-radius: 100%;
+}
+
+#ui input::-moz-range-thumb {
+  width: 0.75rem;
+  height: 0.75rem;
+  background: var(--textColor);
+  cursor: pointer;
+  border-radius: 100%;
+}
+
+#ui input:focus-visible {
+  outline: transparent
+}
+
+#ui input:focus-visible::-webkit-slider-thumb {
+  outline: 0.2rem solid var(--warningColor);
+  outline-offset: 1px;
+}
+
+#ui input:focus-visible::-moz-range-thumb {
+  outline: 0.2rem solid var(--warningColor);
+  outline-offset: 1px;
+}
+
+.gameMenu {
+  position: absolute;
+  background-color: var(--menuBackground);
+  margin: 5rem;
+  border-radius: var(--menuBorderRadius);
+  overflow: hidden;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--menuText);
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+#pauseMenu, #aboutMenu {
+  display: none;
+}
+
+.submenu {
+  background-color: var(--menuBackground);
+  padding: 1rem;
+  border-radius: var(--menuBorderRadius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  max-width: 50%;
+}
+
+.menuButton {
+  background-color: var(--menuText);
+  border-radius: var(--menuBorderRadius);
+  padding: 0.5rem;
+  color: black;
+  text-transform: uppercase;
+  font-weight: 900;
+  font-size: 2rem;
+  cursor: pointer;
+  border: transparent;
+  font-family: inherit;
+  transition: all 0.3s ease-in-out;
+}
+
+#btn-start:hover, #btn-start:focus-visible {
+  background-color: var(--startColor);
+  color: var(--menuText);
+  transform: scale(1.1);
+}
+
+#btn-start:focus-visible {
+  outline: 0.25rem solid var(--startColor);
+  outline-offset: 5px;
+}
+
+#btn-resume:hover, #btn-resume:focus-visible, #btn-resume-2:hover, #btn-resume-2:focus-visible {
+  background-color: var(--resumeColor);
+  color: var(--menuText);
+  transform: scale(1.1);
+}
+
+#btn-resume:focus-visible, #btn-resume-2:focus-visible {
+  outline: 0.25rem solid var(--resumeColor);
+  outline-offset: 5px;
+}
+
+#funFact h4 {
+  font-size: 2rem;
+  text-transform: uppercase;
+  max-width: 75%;
+}
+
+#funFact p {
+  max-width: 75%;
+}
+
+#aboutMenu #funFact p {
+  max-width: unset;
+  transition: all 0.3s ease-in-out;
+}
+
+#aboutMenu #funFact p a {
+  color: var(--skyColor);
+  transition: all 0.3s ease-in-out;
+  border-radius: var(--menuBorderRadius);
+}
+
+#aboutMenu #funFact p a:hover, #aboutMenu #funFact p a:focus-visible{
+  color: var(--warningColor);
+  font-size: larger;
+}
+
+#aboutMenu #funFact p a:focus-visible{
+  outline: 0.2rem solid var(--warningColor);
+  padding-inline: 0.25rem;
+  margin-inline: 0.25rem;
+  text-decoration: none;
 }

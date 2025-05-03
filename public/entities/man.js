@@ -55,35 +55,63 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
 
     update(time) {
         if (this.isDead) return;
-        this.updateHealthBar();
-
-        if (this.transitioning) {
-            return; // Do nothing if we are transitioning to another behavior
+    
+        // --- Handle Pause ---
+        if (this.gameProperties.gameIsPaused) {
+            if (!this._wasPaused) {
+                // First frame of pause
+                this._wasPaused = true;
+    
+                this.body.setVelocity(0, 0);
+                this.body.allowGravity = false;
+                this.body.moves = false; // Fully freeze physics
+                this.anims.stop?.(); // Stop animations if present
+    
+                this.currentBehavior = 'paused';
+            }
+    
+            this.updateHealthBar(); // Keep health bar updated
+            return;
+        } else if (this._wasPaused) {
+            // First frame after unpausing
+            this._wasPaused = false;
+    
+            this.body.allowGravity = true;
+            this.body.moves = true;
+    
+            if (this.currentBehavior === 'paused') {
+                this.newBehavior(); // Resume behavior
+            }
         }
-
-        
-        // 🧠 Immediately switch to attacking if a gorilla is alive and not already attacking
+    
+        // --- Normal Active Update ---
+        this.updateHealthBar();
+    
+        if (this.transitioning) {
+            return; // Don't do anything mid-behavior-switch
+        }
+    
         if (this.gameProperties.gameGorillasAlive > 0 && this.currentBehavior !== 'attacking') {
             this.newBehavior();
-            return; // Wait for new behavior to take over
+            return;
         }
-
+    
+        // Execute current behavior
         if (this.currentBehavior === 'pacing') {
             this.handlePacing(time);
         } else if (this.currentBehavior === 'attacking') {
             this.handleAttacking(time);
         } else if (this.currentBehavior === 'celebrating') {
             this.handleCelebrating(time);
-        } else if (this.currentBehavior === 'paused') {
-            // Do nothing
         }
-
-        if (this.body.x > this.gameProperties.gameWidth || this.body.x < 0 || this.body.y > this.gameProperties.gameHeight || this.body.y < 0) {
-            // console.log("Gorilla fell out of the world.")
-            // this.healthBarBackground.destroy();
-            // this.healthBarForeground.destroy();
-            // this.gameProperties.gameGorillasAlive--;  // ✅ Correct access
-            // this.destroy();
+    
+        // Clamp to world bounds if falling out
+        if (
+            this.body.x > this.gameProperties.gameWidth ||
+            this.body.x < 0 ||
+            this.body.y > this.gameProperties.gameHeight ||
+            this.body.y < 0
+        ) {
             if (this.body.x > this.gameProperties.gameWidth) {
                 this.body.x = this.gameProperties.gameWidth;
             } else if (this.body.x < 0) {
@@ -94,7 +122,8 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
                 this.body.y = 0;
             }
         }
-
+    
+        // Show/hide health bars
         if (this.gameProperties.showHealthBars) {
             this.healthBarForeground.visible = true;
             this.healthBarBackground.visible = true;
@@ -102,7 +131,6 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
             this.healthBarForeground.visible = false;
             this.healthBarBackground.visible = false;
         }
-
     }
 
     updateHealthBar() {
@@ -140,6 +168,8 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
     }
 
     newBehavior() {
+        if (this.gameProperties.gameIsPaused || this.isDead) return;
+
         if (this.transitioning) {
             return;  // Prevent recursive calls if already transitioning
         }
@@ -194,6 +224,8 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
     }
 
     handlePacing(time) {
+        if (this.gameProperties.gameIsPaused || this.isDead) return;
+
         if (this.gameProperties.gameGorillasAlive > 0) {
             this.newBehavior(); // This will prioritize attacking
             return;
@@ -249,6 +281,8 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
     }
 
     handleAttacking(time) {
+        if (this.gameProperties.gameIsPaused || this.isDead) return;
+
         if (this.isDead) return;
         const gorillas = this.scene.gorillas.children.entries;
     
@@ -335,6 +369,8 @@ export class Man extends Phaser.Physics.Arcade.Sprite {
     }
 
     handleCelebrating(time) {
+        if (this.gameProperties.gameIsPaused || this.isDead) return;
+
         if (!this.nextJumpTime || time > this.nextJumpTime) {
             if (this.body.blocked.down) { // Only jump if on the ground
                 this.setVelocityY(-300 * this.scaleFactor); // Scale jump height
