@@ -119,8 +119,8 @@ class GameScene extends Phaser.Scene {
     ];
 
     this.music = this.sound.add('music', {
-      // volume: 0.005 * gameProperties.gameMusicVolume
-      volume: 0 * gameProperties.gameMusicVolume
+      volume: 0.005 * gameProperties.gameMusicVolume
+      // volume: 0 * gameProperties.gameMusicVolume
   });
   
   // Set up a listener for when the music finishes playing
